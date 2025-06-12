@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boeren met Waterwijsheid</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom, #dff6ff, #ffffff);
+      margin: 0;
+      padding: 20px;
+    }
+    .scene {
+      max-width: 800px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .scene img {
+      max-width: 200px; 
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .choice-btn {
+      display: block;
+      width: 90%;
+      margin: 10px auto;
+      padding: 14px;
+      font-size: 17px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .choice-btn:hover {
+      background: #218838;
+      transform: scale(1.02);
+    }
+    .status {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f1f9ff;
+      border-left: 6px solid #17a2b8;
+      border-radius: 10px;
+      font-size: 17px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Logo rechtsonderin */
+    .logo-waterschap {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 120px;
+      z-index: 1000;
+    }
+    .logo-waterschap img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" id="scene"></div>
+  <div class="status" id="status"></div>
+
+  <div class="logo-waterschap">
+    <img src="assets/logo.png" alt="Waterschap Limburg logo" />
+  </div>
+
+  <script>
+    let state = {
+      saldo: 10000,
+      waterpeil: 5,
+      bodemkwaliteit: 5,
+      imago: 5,
+      ronde: 0
+    };
+
+    const scenes = [
+      {
+        title: "Voorjaar - Gewaskeuze",
+        image: "assets/boer.png",
+        text: "Het is een droog voorjaar. Wat teel je?",
+        choices: [
+          { text: "Aardappelen (hoog rendement, veel water)", effect: () => { state.saldo += 4000; state.waterpeil -= 2; } },
+          { text: "Granen (gemiddeld rendement, weinig water)", effect: () => { state.saldo += 2000; state.waterpeil -= 1; } },
+          { text: "Natuurbeheer (subsidie, geen opbrengst)", effect: () => { state.saldo += 1000; state.imago += 1; } }
+        ]
+      },
+      {
+        title: "Zomer - Droogte & Beregening",
+        image: "assets/boer.png",
+        text: "Er is een hittegolf. Wat doe je?",
+        choices: [
+          { text: "Toch beregenen (risico op boete)", effect: () => { state.saldo += 3000; state.waterpeil -= 2; state.imago -= 2; } },
+          { text: "Beperkt beregenen", effect: () => { state.saldo += 1500; state.waterpeil -= 1; state.imago -= 1; } },
+          { text: "Niet beregenen", effect: () => { state.saldo -= 1000; state.imago += 1; } }
+        ]
+      },
+      {
+        title: "Watercollectief",
+        image: "assets/boer.png",
+        text: "Je buren stellen voor om samen een waterreservoir te bouwen. Wat doe je?",
+        choices: [
+          { text: "Ja, investeren (kosten nu, voordeel later)", effect: () => { state.saldo -= 2000; state.imago += 2; } },
+          { text: "Nee, zelf regelen", effect: () => { state.imago -= 1; } }
+        ]
+      },
+      {
+        title: "Herfst - Bodembeheer",
+        image: "assets/boer.png",
+        text: "Hoe ga je om met de bodem voor volgend seizoen?",
+        choices: [
+          { text: "Compost en groenbemester (duurzaam)", effect: () => { state.bodemkwaliteit += 2; state.saldo -= 1000; } },
+          { text: "Kunstmest (snel, minder duurzaam)", effect: () => { state.bodemkwaliteit -= 1; state.saldo += 1000; } }
+        ]
+      },
+      {
+        title: "Subsidiekans",
+        image: "assets/boer.png",
+        text: "Er is subsidie beschikbaar voor slimme irrigatie. Wat doe je?",
+        choices: [
+          { text: "Aanvragen (tijd & papierwerk)", effect: () => { state.saldo += 1500; state.waterpeil += 1; } },
+          { text: "Laten liggen", effect: () => { state.saldo -= 500; } }
+        ]
+      },
+      {
+        title: "Wateradvies van expert",
+        image: "assets/boer.png",
+        text: "Een expert biedt gratis advies aan. Wat doe je?",
+        choices: [
+          { text: "Tijd nemen voor gesprek", effect: () => { state.imago += 1; state.bodemkwaliteit += 1; } },
+          { text: "Geen tijd voor", effect: () => { state.imago -= 1; } }
+        ]
+      },
+      {
+        title: "Overvloedige regen",
+        image: "assets/boer.png",
+        text: "Plotselinge hoosbui. Hoe bescherm je je veld?",
+        choices: [
+          { text: "Drainagesysteem inschakelen", effect: () => { state.saldo -= 1000; } },
+          { text: "Niets doen", effect: () => { state.bodemkwaliteit -= 2; state.saldo -= 500; } }
+        ]
+      },
+      {
+        title: "Werkdruk & keuzes",
+        image: "assets/boer.png",
+        text: "Je loopt achter op planning. Wat laat je liggen?",
+        choices: [
+          { text: "Bodemonderzoek uitstellen", effect: () => { state.bodemkwaliteit -= 1; } },
+          { text: "Vergadering met waterschap skippen", effect: () => { state.imago -= 1; } }
+        ]
+      },
+      {
+        title: "Inspectie",
+        image: "assets/inspecteur.png",
+        text: "Het waterschap komt controleren. Je eerdere keuzes tellen nu mee...",
+        choices: [
+          { text: "Bekijk resultaat", effect: () => {
+            if (state.imago < 4) {
+              state.saldo -= 3000;
+              alert("Je hebt een boete gekregen wegens slecht waterbeheer.");
+            } else {
+              alert("Je ontvangt een bonus voor goed waterbeheer!");
+              state.saldo += 2000;
+            }
+          } }
+        ]
+      },
+      {
+        title: "Eindresultaat",
+        image: "assets/boer.png",
+        text: "Het seizoen is voorbij. Bekijk je resultaten:",
+        choices: []
+      }
+    ];
+
+    function updateScene() {
+      const container = document.getElementById("scene");
+      const status = document.getElementById("status");
+      const scene = scenes[state.ronde];
+      
+      if (!scene) return;
+
+      container.innerHTML = `<h2>${scene.title}</h2>`;
+      if (scene.image) {
+        container.innerHTML += `<img src="${scene.image}" alt="Afbeelding">`;
+      }
+      container.innerHTML += `<p>${scene.text}</p>`;
+
+      scene.choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = choice.text;
+        btn.onclick = () => {
+          choice.effect();
+          state.ronde++;
+          updateScene();
+        };
+        container.appendChild(btn);
+      });
+
+      status.innerHTML = `💧 Waterpeil: ${state.waterpeil} | 🌱 Bodemkwaliteit: ${state.bodemkwaliteit} | 💰 Saldo: €${state.saldo} | 🤝 Imago: ${state.imago}`;
+
+      if (scene.title.includes("Eindresultaat")) {
+        container.innerHTML += `
+          <p><strong>Eindsaldo:</strong> €${state.saldo}</p>
+          <p><strong>Waterpeil:</strong> ${state.waterpeil} / <strong>Bodemkwaliteit:</strong> ${state.bodemkwaliteit}</p>
+          <p><strong>Imago bij waterschap:</strong> ${state.imago >= 5 ? "Goed" : "Matig tot slecht"}</p>
+        `;
+      }
+    }
+
+    updateScene();
+  </script>
+</body>
+</html>
